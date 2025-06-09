@@ -40,9 +40,9 @@ public class ClientManager implements Runnable {
         }
     }
 
-    public void removeClient(){
+    public void removeClient() {
         clients.remove(this);
-        broadcastMessage("SERVER: "+name+" покинул чат.");
+        broadcastMessage("SERVER: " + name + " покинул чат.");
     }
 
     private void broadcastMessage(String massageToSend) {
@@ -62,15 +62,17 @@ public class ClientManager implements Runnable {
     @Override
     public void run() {
         String massageFromClient;
-        while (socket.isConnected()){
+        while (socket.isConnected()) {
             try {
-                massageFromClient = bufferedReader.readLine();
-                broadcastMessage(massageFromClient);
-            } catch (IOException e){
-                closeEverything(socket, bufferedReader, bufferedWriter);
 
+                massageFromClient = bufferedReader.readLine();
+                if (massageFromClient.equals(name + ": " + "exit")) closeEverything(socket, bufferedReader, bufferedWriter);
+                broadcastMessage(massageFromClient);
+            } catch (IOException e) {
+                closeEverything(socket, bufferedReader, bufferedWriter);
+                break;
             }
-            break;
+
         }
     }
 }

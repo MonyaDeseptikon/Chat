@@ -3,12 +3,12 @@ import java.net.Socket;
 import java.util.Scanner;
 
 
-
 public class Client {
     private Socket socket;
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private String name;
+    private static String message = "";
 
     public Client(Socket socket, String userName) {
         this.socket = socket;
@@ -32,21 +32,25 @@ public class Client {
     }
 
     public void sendMessage() {
+        System.out.println(Thread.currentThread().getName());
         try {
             bufferedWriter.write(name);
             bufferedWriter.newLine();
             bufferedWriter.flush();
             Scanner scanner = new Scanner(System.in);
             while (socket.isConnected()) {
-                String message = scanner.nextLine();
-//                if (message.equals("exit"))  closeEverything(socket, bufferedReader, bufferedWriter);
+                message = scanner.nextLine();
                 bufferedWriter.write(name + ": " + message);
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
+                if (message.equals("exit")) break;
+
             }
+            closeEverything(socket, bufferedReader, bufferedWriter);
         } catch (IOException e) {
             e.printStackTrace();
             closeEverything(socket, bufferedReader, bufferedWriter);
+
         }
     }
 
@@ -54,17 +58,23 @@ public class Client {
         new Thread(new Runnable() {
             @Override
             public void run() {
+
                 String messageFromGroup;
                 while (socket.isConnected()) {
+
                     try {
+                        if (message.equals("exit")) throw new IOException("exit");
                         messageFromGroup = bufferedReader.readLine();
+
                         System.out.println(messageFromGroup);
 
                     } catch (IOException e) {
                         e.printStackTrace();
                         closeEverything(socket, bufferedReader, bufferedWriter);
+                        break;
                     }
                 }
+
             }
         }).start();
     }
@@ -80,6 +90,8 @@ public class Client {
             if (socket != null) {
                 socket.close();
             }
+            Thread.currentThread().interrupt();
+
         } catch (IOException e) {
             e.printStackTrace();
         }

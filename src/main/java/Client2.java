@@ -16,7 +16,7 @@ public class Client2 {
             bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (IOException e) {
-            closeEverything(socket, bufferedReader, bufferedWriter);
+            closeEverything(this.socket, bufferedReader, bufferedWriter);
         }
     }
 
@@ -31,6 +31,7 @@ public class Client2 {
     }
 
     public void sendMessage() {
+        System.out.println(Thread.currentThread().getName());
         try {
             bufferedWriter.write(name);
             bufferedWriter.newLine();
@@ -53,6 +54,7 @@ public class Client2 {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                System.out.println(Thread.currentThread().getName());
                 String messageFromGroup;
                 while (socket.isConnected()) {
                     try {
@@ -61,6 +63,7 @@ public class Client2 {
                     } catch (IOException e) {
                         e.printStackTrace();
                         closeEverything(socket, bufferedReader, bufferedWriter);
+                        break;
                     }
                 }
             }
