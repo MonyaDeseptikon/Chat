@@ -1,3 +1,7 @@
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
+import org.jline.utils.NonBlockingReader;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
@@ -8,11 +12,12 @@ public class Client {
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private String name;
-    private static String message = "";
+
 
     public Client(Socket socket, String userName) {
         this.socket = socket;
         name = userName;
+
         try {
             bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -22,6 +27,7 @@ public class Client {
     }
 
     public static void main(String[] args) throws IOException {
+
         Scanner scanner = new Scanner(System.in);
         System.out.print("Введите своё имя: ");
         String name = scanner.nextLine();
@@ -29,41 +35,55 @@ public class Client {
         Client client = new Client(socket, name);
         client.listenForMessage();
         client.sendMessage();
+
+
     }
 
     public void sendMessage() {
-        System.out.println(Thread.currentThread().getName());
+
         try {
             bufferedWriter.write(name);
             bufferedWriter.newLine();
             bufferedWriter.flush();
-            Scanner scanner = new Scanner(System.in);
-            while (socket.isConnected()) {
-                message = scanner.nextLine();
-                bufferedWriter.write(name + ": " + message);
+String message;
+            int read;
+            Terminal terminal;
+            terminal = TerminalBuilder.builder().jna(true).system(true).build();
+            terminal.enterRawMode();
+            NonBlockingReader reader = terminal.reader();
+            while (!socket.isClosed()) {
+                read = reader.read(1000);
+                terminal.writer().println(read);
+                terminal.writer().flush();
+
+
+                bufferedWriter.write(read);
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
-                if (message.equals("exit")) break;
-
             }
+            reader.close();
+            terminal.close();
             closeEverything(socket, bufferedReader, bufferedWriter);
         } catch (IOException e) {
             e.printStackTrace();
             closeEverything(socket, bufferedReader, bufferedWriter);
 
+        } finally {
+            closeEverything(socket, bufferedReader, bufferedWriter);
         }
+
     }
 
     public void listenForMessage() {
+
         new Thread(new Runnable() {
             @Override
             public void run() {
 
                 String messageFromGroup;
-                while (socket.isConnected()) {
+                while (!socket.isClosed()) {
 
                     try {
-                        if (message.equals("exit")) throw new IOException("exit");
                         messageFromGroup = bufferedReader.readLine();
 
                         System.out.println(messageFromGroup);
@@ -90,7 +110,7 @@ public class Client {
             if (socket != null) {
                 socket.close();
             }
-            Thread.currentThread().interrupt();
+
 
         } catch (IOException e) {
             e.printStackTrace();

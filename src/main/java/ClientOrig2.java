@@ -1,37 +1,40 @@
-import org.jline.terminal.Terminal;
-import org.jline.terminal.TerminalBuilder;
-import org.jline.utils.NonBlockingReader;
+
 
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 
 
-public class Client2 {
+public class ClientOrig2 {
     private Socket socket;
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private String name;
 
-    public Client2(Socket socket, String userName) {
+
+    public ClientOrig2(Socket socket, String userName) {
         this.socket = socket;
         name = userName;
+
         try {
             bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (IOException e) {
-            closeEverything(this.socket, bufferedReader, bufferedWriter);
+            closeEverything(socket, bufferedReader, bufferedWriter);
         }
     }
 
     public static void main(String[] args) throws IOException {
+
         Scanner scanner = new Scanner(System.in);
         System.out.print("Введите своё имя: ");
         String name = scanner.nextLine();
         Socket socket = new Socket("localhost", 1300);
-        Client2 client = new Client2(socket, name);
+        ClientOrig2 client = new ClientOrig2(socket, name);
         client.listenForMessage();
         client.sendMessage();
+
+
     }
 
     public void sendMessage() {
@@ -40,24 +43,20 @@ public class Client2 {
             bufferedWriter.write(name);
             bufferedWriter.newLine();
             bufferedWriter.flush();
-            String message;
-            int read;
-            Terminal terminal;
-            terminal = TerminalBuilder.builder().jna(true).system(true).build();
-            terminal.enterRawMode();
-            NonBlockingReader reader = terminal.reader();
-            while (!socket.isClosed()) {
-                read = reader.read(500);
+            Scanner scanner = new Scanner(System.in);
 
-//                terminal.writer().println(read);
-//                terminal.writer().flush();
-                message = String.valueOf(read);
-                bufferedWriter.write(message);
+            String message;
+            while (!socket.isClosed()) {
+                while (scanner.) {
+                    bufferedWriter.write( "печатает");
+                    bufferedWriter.flush();
+                }
+                message = scanner.nextLine();
+                if (message.equals("exit")) break;
+                bufferedWriter.write( message);
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
             }
-            reader.close();
-            terminal.close();
             closeEverything(socket, bufferedReader, bufferedWriter);
         } catch (IOException e) {
             e.printStackTrace();
@@ -70,25 +69,28 @@ public class Client2 {
     }
 
     public void listenForMessage() {
-        Thread thread = new Thread(new Runnable() {
+
+        new Thread(new Runnable() {
             @Override
             public void run() {
 
                 String messageFromGroup;
-                while (socket.isConnected()) {
+                while (!socket.isClosed()) {
+
                     try {
                         messageFromGroup = bufferedReader.readLine();
+
                         System.out.println(messageFromGroup);
+
                     } catch (IOException e) {
                         e.printStackTrace();
                         closeEverything(socket, bufferedReader, bufferedWriter);
                         break;
                     }
                 }
-            }
-        });
-        thread.start();
 
+            }
+        }).start();
     }
 
     private void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
@@ -102,6 +104,8 @@ public class Client2 {
             if (socket != null) {
                 socket.close();
             }
+
+
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.util.*;
+
 
 public class ClientManager implements Runnable {
     private Socket socket;
@@ -8,12 +9,14 @@ public class ClientManager implements Runnable {
     private BufferedWriter bufferedWriter;
     private String name;
     public static ArrayList<ClientManager> clients = new ArrayList<>();
+    InputStreamReader inSR;
 
     public ClientManager(Socket socket) {
         try {
             this.socket = socket;
+            inSR = new InputStreamReader(socket.getInputStream());
             bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-            bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            bufferedReader = new BufferedReader(inSR);
             name = bufferedReader.readLine();
             clients.add(this);
             broadcastMessage("Server: " + name + " подключился к чату.");
@@ -49,7 +52,7 @@ public class ClientManager implements Runnable {
         for (ClientManager client : clients) {
             try {
                 if (!client.name.equals(name)) {
-                    client.bufferedWriter.write(massageToSend);
+                    client.bufferedWriter.write(name + ": " + massageToSend);
                     client.bufferedWriter.newLine();
                     client.bufferedWriter.flush();
                 }
@@ -62,16 +65,29 @@ public class ClientManager implements Runnable {
     @Override
     public void run() {
         String massageFromClient;
+
+
         while (socket.isConnected()) {
             try {
-
                 massageFromClient = bufferedReader.readLine();
-                if (massageFromClient.equals(name + ": " + "exit")) closeEverything(socket, bufferedReader, bufferedWriter);
+//                System.out.println(massageFromClient);
                 broadcastMessage(massageFromClient);
-            } catch (IOException e) {
+////                if (!chCode.equals(-2))  broadcastMessage("печатает");
+//                ch = (char) ((int) chCode);
+//                if (!chCode.equals(-2) && !chCode.equals(10)) sb.append(ch);
+//                else if (chCode.equals(10)) {
+//                    massageFromClient = sb.toString();
+//                    System.out.println("строка " + massageFromClient);
+//                    broadcastMessage(massageFromClient);
+//                    sb.delete(0, sb.length());
+//                }
+
+
+            } catch (IOException | NullPointerException e) {
                 closeEverything(socket, bufferedReader, bufferedWriter);
                 break;
             }
+
 
         }
     }

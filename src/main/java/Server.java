@@ -16,8 +16,11 @@ public class Server {
     }
 
     public void runServer() {
+
         try {
+
             while (!serverSocket.isClosed()) {
+
                 Socket socket = serverSocket.accept();
                 System.out.println("Подключен новый клиент!");
                 ClientManager client = new ClientManager(socket);

@@ -13,5 +13,13 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
+    <dependencies>
+        <!-- https://mvnrepository.com/artifact/org.jline/jline -->
+        <dependency>
+            <groupId>org.jline</groupId>
+            <artifactId>jline</artifactId>
+<!--            <version>3.30.4</version>-->
+            <version>3.21.0</version>
+        </dependency>
+    </dependencies>
 </project>
